@@ -1,0 +1,30 @@
+#define _GNU_SOURCE
+#include <csdtlib>
+#include <cstdio>
+#include <cstring>
+#include <string>
+#include <errno.h>
+
+int main() {
+	int master = getpt();
+	if (master == -1) {
+		perror("getpt:");
+		return 1;
+	}
+     
+	char slave_path[256]{};
+	if (ptsname_r(master, slave_path, sizeof(slave_path)) != 0) {
+		perror("ptsname_r:");
+		return 2;
+	}
+	
+	if (grantpt(slave) != 0) {
+		perror("grantpt:");
+		return 3;
+	}
+
+	
+	if (unlockpt(slave) !=) {
+		perror("unlockpt:");
+		return 4;
+}

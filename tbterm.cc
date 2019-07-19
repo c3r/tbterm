@@ -12,6 +12,20 @@
 #include <fcntl.h>
 #include <sys/wait.h>
 #include <SDL2/SDL.h>
+#include <signal.h>
+#include <vector>
+#include <cstdint>
+#include "textbuffer.h"
+
+class Console {
+	private:
+		SDL_Surface *_surface = nullptr;
+		TextBuffer _buffer;
+		
+	public:
+		void HandleSurfaceChange(SDL_Surface *surface);
+		void ResizeTextBuffer(uint32_t w, uint32_t h);
+};
 
 int main() {
 
@@ -56,6 +70,8 @@ int main() {
 	pid_t pid = fork();
 	if (pid == -1) {
 		perror("fork");
+		close(master);
+		close(slave);
 		return 5;
 	}
 
@@ -89,8 +105,8 @@ int main() {
 	// window creation 
 	// ====================================================================
 	if (SDL_Init(SDL_INIT_VIDEO |
-				 SDL_INIT_TIMER |
-				 SDL_INIT_EVENTS) != 0) {
+		     	 SDL_INIT_TIMER |
+		     	 SDL_INIT_EVENTS) != 0) {
 		fprintf(stderr, "SDL_Init: error\n");
 		return 1;
 	}
@@ -114,7 +130,8 @@ int main() {
 		fprintf(stderr, "SDL_GetWindowSurface: error\n");
 		return 1;
 	}
-	//event loop
+
+	// main event loop
 	bool end = false;
 	while (!end) {
 		int status;
@@ -126,19 +143,24 @@ int main() {
 
 		SDL_PumpEvents();
 		SDL_Event ev;
-		while (SDL_PeepEvents(&ev, 1, SDL_GETEVENT, SDL_FIRSTEVENT, SDL_LASTEVENT) > 0) {
+		while (SDL_PeepEvents(
+			&ev, 
+			1, 
+			SDL_GETEVENT, 
+			SDL_FIRSTEVENT, 
+			SDL_LASTEVENT) > 0) {
 			if (ev.type == SDL_QUIT) {
 				end = true;
 				break;
 			}
 			if (ev.type == SDL_WINDOWEVENT) {
-
 				// Window size has changed - we have to reinitialize the SDL_Surface here.
 				if (ev.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
 					surface = SDL_GetWindowSurface(window);
 					if (surface == nullptr) {
 						fprintf(stderr, "SDL_GetWindowSurface: error\n");
 						end = true;
+						break;
 					}
 					continue;
 				}
@@ -155,13 +177,11 @@ int main() {
 		}
 	}
 
-
-
 	// destroy SDL window
 	SDL_DestroyWindow(window);
 	SDL_Quit();
 
-	close(master);
+	close(master); // This should force the child to exit.
 	if (pid != -1) { 
 		// Wait for the child to die.
 		waitpid(pid, nullptr, 0); 

@@ -19,5 +19,6 @@ tags
 
 a.out
 *.out
+*.o
 #tbterm.cc#
-
+tbterm

@@ -17,12 +17,12 @@ void TextBuffer::Resize(uint32_t w, uint32_t h) {
         memcpy(
             &characters[j * w],
             &_characters[j * _w],
-            sizeof(uint32_t) * min_w);
+            sizeof(decltype(characters)::value_type) * min_w);
 
         memcpy(
             &attributes[j * w],
             &_attributes[j * _w],
-            sizeof(CharAttrib) * min_w);
+            sizeof(decltype(attributes)::value_type) * min_w);
     }
 
     _characters = std::move(characters);

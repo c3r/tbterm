@@ -1,3 +1,4 @@
+#include <poll.h>
 #include "console.h"
 
 void Console::HandleSurfaceChange(SDL_Surface *surface) {
@@ -16,13 +17,9 @@ void Console::ResetPid() {
     _pid = -1;
 }
 
-void Console::CloseMaster() {
-    close(_master);
-}
-
 bool Console::SpawnChild() {
 
-    int _master = getpt();
+    _master = getpt();
     if (_master == -1) {
         perror("getpt");
         return false;
@@ -41,7 +38,6 @@ bool Console::SpawnChild() {
         return false;
     } 
 
-
     if (unlockpt(_master) != 0) {
         perror("unlockpt");
         close(_master);
@@ -55,8 +51,8 @@ bool Console::SpawnChild() {
         return false;
     }
 
-    // duplicate the process
     _pid = fork();
+
     if (_pid == -1) {
         perror("fork");
         close(_master);
@@ -65,16 +61,12 @@ bool Console::SpawnChild() {
     }
 
     if (_pid == 0) {
-        // Child process. 
-        // ====================================================================
-
-        // Zamykamy niepotrzebne dekryptory - mamy otwarte bo zdupliko
-        // wany proces jest.
+    	printf("I'm child! (%d)\n", getpid());
         close(0); // stdin
         close(1); // stdout
         close(2); // stderr
         close(_master);
-        _master = -1;
+	_master = -1;
 
         dup2(slave, 0);
         dup2(slave, 1);
@@ -82,15 +74,44 @@ bool Console::SpawnChild() {
 
         close(slave);
 
-        // start desired shell 
-        if (execl("/bin/bash", "/bin/bash", nullptr) == -1) {
-            abort();
+	if (execl("/bin/bash", "/bin/bash", nullptr) == -1) {
+	    abort();
+	}
+    } 
+
+    printf("I'm master! (%d)\n", getpid());
+    close(slave);
+    _read_th = std::make_unique<std::thread>(&Console::ReaderWorker, this);
+    
+    return true;
+}
+
+void Console::ReaderWorker() {
+    uint8_t buf[4096];
+    pollfd fds[] = {{ _master, POLLIN | POLLPRI | POLLRDHUP | POLLERR, 0 /* ignored */ }};
+
+    while (!_end_threads.load()) { 
+    	int ret = poll(fds, 1, 50 /* ms */);
+
+    	if (ret == -1) { perror("poll"); break; }
+        if (ret ==  0) { continue; } // Timeout.
+
+        const int revents = fds[0].revents;
+        if ((revents & POLLIN)) {
+            ssize_t buf_read = read(_master, buf, sizeof(buf));
+            if (buf_read == -1) { 
+            	perror("ReaderWorker"); 
+            }
+            fwrite(buf, 1, buf_read, stdout);
+        } else {
+            fprintf(stderr, "poll revents == %.x\n", revents);
         }
     }
+}
 
-    // Parent process. 
-    // ====================================================================
-    close(slave);
-
-    return true;
+void Console::CloseMaster() {
+    _end_threads.store(true);
+    _read_th->join();
+    printf("master: %d\n", _master);
+    close(_master);
 }

@@ -25,14 +25,10 @@ int main() {
 
     Context ctx;	
     ctx.wnd = std::make_unique<Window>(&ctx);
-    if (!ctx.wnd->InitSDL() || !ctx.wnd->Create()) {
-        return 1;
-    }
+    if (!ctx.wnd->InitSDL() || !ctx.wnd->Create()) { return 1; }
 
     ctx.consoles.emplace_back( std::make_unique<Console>() );
-    if (!ctx.consoles[0]->SpawnChild()) {
-        return 2;
-    }
+    if (!ctx.consoles[0]->SpawnChild()) { return 2; }
 
     bool end = false;
     while (!end) {
@@ -45,9 +41,8 @@ int main() {
             }
         }
 
-        if(!ctx.wnd->HandleEvents()) {
+        if (!ctx.wnd->HandleEvents()) {
             end = true;
-        puts("lala");
             break;
         }
 
@@ -58,14 +53,16 @@ int main() {
 
     for (auto& console : ctx.consoles) {
         // This should force the child to exit.
-        console->CloseMaster();
+        //console->CloseMaster();
     }
 
     // Keep this as a separate loop.
     for (auto& console : ctx.consoles) {
-        if (console->GetPid() != -1) { 
-            // Wait for the child to die.
-            waitpid(console->GetPid(), nullptr, 0); 
+    	console->CloseMaster();
+    	pid_t pid = console->GetPid();
+        if (pid != -1) { 
+	    puts("Waiting for child to die...");
+            waitpid(pid, nullptr, 0); // Should not be WNOHANG here...
         }
     }
 

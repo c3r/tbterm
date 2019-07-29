@@ -20,19 +20,20 @@
 struct Context;
 
 class Window {
-	private:
-		Context *_ctx = nullptr;
-		SDL_Window *_window = nullptr;
-		SDL_Surface *_surface = nullptr;
-	public:
-		Window(Context *ctx) : _ctx(ctx) {}
-		~Window();
+    private:
+	Context *_ctx = nullptr;
+	SDL_Window *_window = nullptr;
+	SDL_Surface *_surface = nullptr;
+    public:
+	Window(Context *ctx) : _ctx(ctx) {}
+	~Window();
 
-		bool InitSDL();
-		void QuitSDL();
+	bool InitSDL();
+	void QuitSDL();
 
-		bool Create();
-		void Destroy();
+	bool Create();
+	void Destroy();
 
-                bool HandleEvents();
+	bool HandleEvents();
+	void ResizeConsoles();
 };

@@ -23,48 +23,40 @@
 
 int main() {
 
-    Context ctx;	
+    Context ctx;
     ctx.wnd = std::make_unique<Window>(&ctx);
-    if (!ctx.wnd->InitSDL() || !ctx.wnd->Create()) { return 1; }
 
+    if (!ctx.wnd->InitSDL() || !ctx.wnd->Create()) { return 1; }
+    ctx.wnd->ResizeConsoles();
+    //ctx.
+
+    // TODO: Move this to a function called "add new console"
     ctx.consoles.emplace_back( std::make_unique<Console>() );
     if (!ctx.consoles[0]->SpawnChild()) { return 2; }
+    // TODO: ----
 
     bool end = false;
-    while (!end) {
-        for (auto& console : ctx.consoles) {
-            int status;
-            if (waitpid(console->GetPid(), &status, WNOHANG) != 0) {
-                console->ResetPid();
-                end = true;
-                break;
-            }
-        }
+    while (!end)
+    {
+	for (auto& console : ctx.consoles) 
+	    if (waitpid(console->GetPid(), nullptr, WNOHANG) != 0) 
+	    { 
+		console->ResetPid(); 
+		end = true; 
+		break; 
+	    } 
 
-        if (!ctx.wnd->HandleEvents()) {
-            end = true;
-            break;
-        }
-
+	if (!ctx.wnd->HandleEvents()) { end = true; break; }
     }
 
     ctx.wnd->Destroy();
     ctx.wnd->QuitSDL();
 
-    for (auto& console : ctx.consoles) {
-        // This should force the child to exit.
-        //console->CloseMaster();
-    }
+    // This will force children to exit.
+    for (auto& console : ctx.consoles) 
+	console->CloseMaster(); 
 
-    // Keep this as a separate loop.
-    for (auto& console : ctx.consoles) {
-    	console->CloseMaster();
-    	pid_t pid = console->GetPid();
-        if (pid != -1) { 
-	    puts("Waiting for child to die...");
-            waitpid(pid, nullptr, 0); // Should not be WNOHANG here...
-        }
-    }
-
-    puts("Bye bye.");
+    for (auto& console : ctx.consoles) 
+    	if (console->GetPid() != -1) 
+	    waitpid(console->GetPid(), nullptr, 0);
 }

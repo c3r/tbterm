@@ -22,3 +22,4 @@ a.out
 *.o
 #tbterm.cc#
 tbterm
+.vscode

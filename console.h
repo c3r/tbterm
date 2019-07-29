@@ -14,10 +14,11 @@
 #include <fcntl.h>
 #include "textbuffer.h"
 
-class Console { 
+class Console {
 
-    private:
+private:
 	void ReaderWorker();
+	void ProcessOutput(uint8_t *data, size_t size);
 
 	std::atomic<bool> _end_threads{false};
 
@@ -27,13 +28,17 @@ class Console {
 	int _master = -1;
 	std::unique_ptr<std::thread> _read_th;
 
-    public:
+	uint32_t _char_width = 16;
+	uint32_t _char_height = 16;
+	uint32_t _lines = 1; // Actual console size.
+	uint32_t _scrollback_lines = 1000;
+
+public:
 	void ResetPid();
 	pid_t GetPid() const;
 	int GetMaster();
 	void HandleSurfaceChange(SDL_Surface *surface);
-	void ResizeTextBuffer(uint32_t w, uint32_t h);
+	void ResizeTextBuffer(uint32_t w, uint32_t h); //Pixels
 	bool SpawnChild();
 	void CloseMaster();
 };
-

@@ -41,4 +41,5 @@ public:
 	void ResizeTextBuffer(uint32_t w, uint32_t h); //Pixels
 	bool SpawnChild();
 	void CloseMaster();
+	void UpdateSurface();
 };

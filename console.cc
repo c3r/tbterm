@@ -1,9 +1,18 @@
-#include <algorithm>
-#include <poll.h>
-#include "console.h"
-
+#include <algorithm> #include <poll.h> #include "console.h" 
 // TODO: Handle console control codes
-void Console::ProcessOutput(uint8_t *data, size_t size) { for (size_t i = 0; i < size; i++) { _buffer.InsertCharacter(data[i]); } }
+void Console::ProcessOutput(uint8_t *data, size_t size) 
+{ 
+    for (size_t i = 0; i < size; i++) 
+	_buffer.InsertCharacter(data[i]); 
+
+    UpdateSurface();
+}
+
+void Console::UpdateSurface() 
+{
+    
+}
+
 void Console::HandleSurfaceChange(SDL_Surface *surface) { _surface = surface; }
 
 void Console::ResizeTextBuffer(uint32_t w, uint32_t h) {
@@ -19,32 +28,37 @@ void Console::ResetPid() { _pid = -1; }
 bool Console::SpawnChild() {
 
     _master = getpt();
-    if (_master == -1) {
+    if (_master == -1) 
+    {
 	perror("getpt");
 	return false;
     }
 
     char slave_path[256]{};
-    if (ptsname_r(_master, slave_path, sizeof(slave_path)) != 0) {
+    if (ptsname_r(_master, slave_path, sizeof(slave_path)) != 0) 
+    {
 	perror("ptsname_r");
 	close(_master);
 	return false;
     }
 
-    if (grantpt(_master) != 0) {
+    if (grantpt(_master) != 0) 
+    {
 	perror("grantpt");
 	close(_master);
 	return false;
     }
 
-    if (unlockpt(_master) != 0) {
+    if (unlockpt(_master) != 0) 
+    {
 	perror("unlockpt");
 	close(_master);
 	return false;
     }
 
     int slave = open(slave_path, O_RDWR);
-    if (slave < 0) {
+    if (slave < 0) 
+    {
 	perror("open");
 	close(_master);
 	return false;
@@ -60,7 +74,8 @@ bool Console::SpawnChild() {
 	return false;
     }
 
-    if (_pid == 0) {
+    if (_pid == 0) 
+    {
 	printf("I'm child! (%d)\n", getpid());
 	close(0); // stdin
 	close(1); // stdout
@@ -79,7 +94,7 @@ bool Console::SpawnChild() {
 	}
     }
 
-    printf("I'm master! (%d)\n", getpid());
+    printf("I'm master! (%d)\n", getpid())/
     close(slave);
     _read_th = std::make_unique<std::thread>(&Console::ReaderWorker, this);
 

@@ -15,16 +15,24 @@ void Window::Destroy() { if (_window != nullptr) SDL_DestroyWindow(_window); }
 
 bool Window::Create() 
 {
-    _window = SDL_CreateWindow(
-	    "tbterm",
-	    SDL_WINDOWPOS_CENTERED,
-	    SDL_WINDOWPOS_CENTERED,
-	    640, 480,
-	    SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE
-	    );
-    if (_window == nullptr) { fprintf(stderr, "SDL_CreateWindow: error\n"); return false; }
+    _window = SDL_CreateWindow( "tbterm",
+				SDL_WINDOWPOS_CENTERED,
+				SDL_WINDOWPOS_CENTERED,
+				640, 480,
+				SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
+
+    if (_window == nullptr) 
+    { 
+    	fprintf(stderr, "SDL_CreateWindow: error\n"); 
+    	return false; 
+    }
+
     _surface = SDL_GetWindowSurface(_window);
-    if (_surface == nullptr) { fprintf(stderr, "SDL_GetWindowSurface: error\n"); return false; }
+    if (_surface == nullptr) 
+    { 
+    	fprintf(stderr, "SDL_GetWindowSurface: error\n"); 
+    	return false; 
+    }
 
     ResizeConsoles();
     return true;

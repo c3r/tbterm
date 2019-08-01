@@ -26,9 +26,8 @@ int main() {
     Context ctx;
     ctx.wnd = std::make_unique<Window>(&ctx);
 
-    if (!ctx.wnd->InitSDL() || !ctx.wnd->Create()) { return 1; }
+    if (!ctx.wnd->InitSDL() || !ctx.wnd->Create()) return 1;
     ctx.wnd->ResizeConsoles();
-    //ctx.
 
     // TODO: Move this to a function called "add new console"
     ctx.consoles.emplace_back( std::make_unique<Console>() );
@@ -55,7 +54,7 @@ int main() {
     // This will force children to exit.
     for (auto& console : ctx.consoles) 
 	console->CloseMaster(); 
-
+    
     for (auto& console : ctx.consoles) 
     	if (console->GetPid() != -1) 
 	    waitpid(console->GetPid(), nullptr, 0);

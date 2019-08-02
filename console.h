@@ -14,9 +14,11 @@
 #include <fcntl.h>
 #include "textbuffer.h"
 
+struct Context;
+
 class Console {
 
-private:
+    private:
 	void ReaderWorker();
 	void ProcessOutput(uint8_t *data, size_t size);
 
@@ -32,8 +34,10 @@ private:
 	uint32_t _char_height = 16;
 	uint32_t _lines = 1; // Actual console size.
 	uint32_t _scrollback_lines = 1000;
+	Context* _ctx = nullptr;  // Console is not the owner of this object.
 
-public:
+    public:
+	Console(Context* ctx) : _ctx(ctx) {}
 	void ResetPid();
 	pid_t GetPid() const;
 	int GetMaster();

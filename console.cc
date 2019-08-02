@@ -1,4 +1,7 @@
-#include <algorithm> #include <poll.h> #include "console.h" 
+#include <algorithm> 
+#include <poll.h> 
+#include "console.h" 
+
 // TODO: Handle console control codes
 void Console::ProcessOutput(uint8_t *data, size_t size) 
 { 
@@ -13,11 +16,16 @@ void Console::UpdateSurface()
     
 }
 
-void Console::HandleSurfaceChange(SDL_Surface *surface) { _surface = surface; }
+void Console::HandleSurfaceChange(SDL_Surface *surface) 
+{ 
+    _surface = surface; 
+    
+    printf("surface bits: %i\n", surface->format->BitsPerPixel);
+}
 
 void Console::ResizeTextBuffer(uint32_t w, uint32_t h) {
     unsigned int columns = std::max(w / _char_width, 1U);
-    unsigned int lines = std::max(h / _char_height, 1U);
+    _lines = std::max(h / _char_height, 1U);
     _buffer.Resize(columns, _scrollback_lines);
     // TODO: send signal to child
 }
@@ -94,7 +102,7 @@ bool Console::SpawnChild() {
 	}
     }
 
-    printf("I'm master! (%d)\n", getpid())/
+    printf("I'm master! (%d)\n", getpid());
     close(slave);
     _read_th = std::make_unique<std::thread>(&Console::ReaderWorker, this);
 

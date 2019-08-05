@@ -4,8 +4,15 @@ all:
 		textbuffer.cc \
 		console.cc \
 		window.cc \
-		-lSDL2 -lpthread 
+		-lpthread -lX11
 
+clang-all:
+	clang++-8 -Wall -Wextra -o tbterm \
+		tbterm.cc \
+		textbuffer.cc \
+		console.cc \
+		window.cc \
+		-lSDL2 -lpthread 
 test: all
 	./tbterm
 

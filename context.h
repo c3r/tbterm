@@ -19,5 +19,5 @@
 
 struct Context {
 	std::vector<std::unique_ptr<Console>> consoles;
-	std::unique_ptr<Window> wnd;
+	std::unique_ptr<TermWindow> wnd;
 };

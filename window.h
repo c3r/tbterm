@@ -4,36 +4,51 @@
 #include <cstring>
 #include <string>
 #include <errno.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <sys/wait.h>
-#include <SDL2/SDL.h>
-#include <signal.h>
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
+#include <X11/Xos.h>
+#include <X11/Xatom.h>
 #include <vector>
 #include <cstdint>
 #include <memory>
+
 #include "textbuffer.h"
 #include "console.h"
 
 struct Context;
 
-class Window {
+class TermWindow {
     private:
 	Context *_ctx = nullptr;
-	SDL_Window *_window = nullptr;
-	SDL_Surface *_surface = nullptr;
-    public:
-	Window(Context *ctx) : _ctx(ctx) {}
-	~Window();
+	Window *_window = nullptr;
+	Display *_display = nullptr;
+	Visual *_visual = nullptr;
+	XImage *_surface = nullptr;
+	uint32_t *_frame = nullptr;
 
-	bool InitSDL();
-	void QuitSDL();
+	Atom WM_DELETE_WINDOW;
+	Atom WM_SIZE_HINTS;
+	Atom WM_NORMAL_HINTS;
+	Atom _NET_WM_ALLOWED_ACTIONS;
+	Atom _NET_WM_ACTION_CLOSE;
+	Atom _NET_WM_ACTION_MINIMIZE;
+	Atom _NET_WM_ACTION_MOVE;
+
+	const int kDefaultWidth = 640;
+	const int kDefaultHeight = 480;
+
+    public:
+	TermWindow(Context *ctx) : _ctx(ctx) {}
+	~TermWindow();
+
+	bool InitX11();
+	void QuitX11();
 
 	bool Create();
 	void Destroy();
 
 	bool HandleEvents();
 	void ResizeConsoles();
+
+	void RedrawTermWindowIfConsoleActive(Console *console);
 };

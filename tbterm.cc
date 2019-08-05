@@ -24,13 +24,12 @@
 int main() {
 
     Context ctx;
-    ctx.wnd = std::make_unique<Window>(&ctx);
+    ctx.wnd = std::make_unique<TermWindow>(&ctx);
 
     if (!ctx.wnd->InitSDL() || !ctx.wnd->Create()) return 1;
 
     // TODO: Move this to a function called "add new console"
     ctx.consoles.emplace_back( std::make_unique<Console>(&ctx) );
-
     ctx.wnd->ResizeConsoles();
     
     if (!ctx.consoles[0]->SpawnChild()) { return 2; }
@@ -47,7 +46,7 @@ int main() {
 		break; 
 	    } 
 
-	if (!ctx.wnd->HandleEvents()) { end = true; break; }
+	if (!ctx.wnd->HandleEvents()) { end = true; }
     }
 
     ctx.wnd->Destroy();

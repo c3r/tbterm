@@ -1,6 +1,7 @@
 #include <algorithm> 
 #include <poll.h> 
 #include "console.h" 
+#include "context.h"
 
 // TODO: Handle console control codes
 void Console::ProcessOutput(uint8_t *data, size_t size) 
@@ -11,15 +12,24 @@ void Console::ProcessOutput(uint8_t *data, size_t size)
     UpdateSurface();
 }
 
-void Console::UpdateSurface() 
+void Console::UpdateSurface()
 {
-    
+   uint8_t *pixels = (uint8_t*)_surface->pixels; 
+
+   for (int i=0; i<250; i++)
+   {
+       pixels[(i + 25 * _surface->pitch) * 4 + 0] = 0xFF;
+       pixels[(i + 25 * _surface->pitch) * 4 + 1] = 0;
+       pixels[(i + 25 * _surface->pitch) * 4 + 2] = 0;
+   }
+
+   if (_ctx->wnd != nullptr) _ctx->wnd->RedrawTermWindowIfConsoleActive(this);
 }
+
 
 void Console::HandleSurfaceChange(SDL_Surface *surface) 
 { 
     _surface = surface; 
-    
     printf("surface bits: %i\n", surface->format->BitsPerPixel);
 }
 
@@ -97,9 +107,7 @@ bool Console::SpawnChild() {
 
 	close(slave);
 
-	if (execl("/bin/bash", "/bin/bash", nullptr) == -1) {
-	    abort();
-	}
+	if (execl("/bin/bash", "/bin/bash", nullptr) == -1) { abort(); }
     }
 
     printf("I'm master! (%d)\n", getpid());
@@ -132,7 +140,6 @@ void Console::ReaderWorker() {
 void Console::CloseMaster() {
     _end_threads.store(true);
     _read_th->join();
-    printf("master: %d\n", _master);
     close(_master);
     _master = -1;
 }
